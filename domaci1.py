@@ -7,6 +7,7 @@ from search import *            # The Python module for search problems
 from copy import deepcopy
 import sys
 import math
+import time
 
 # In[170]:
 
@@ -206,51 +207,85 @@ def compress_state(state):
             
     return characters
 
+
 # In[174]:
 
 initialState    = "867254301"
 goalState       = "012345678"
 
-p = Puzzle8Problem(initialState, goalState)
+class P8_h1(Puzzle8Problem):
+    def h(self, n):
+        # print "Checking heuristic for n: %s, with depth: %s " % (n.state, len(n.path()))
+        
+        matches = 0
+        
+        for (t1,t2) in zip(n.state, self.goal):
+            # print "T1: %s, T2: %s" % (t1, t2)
+            if  t1 != t2:
+                matches += 1
+                
+        # print "State:"
+        # printPuzzle(n.state)
+        # 
+        # print "Goal:"
+        # printPuzzle(self.goal)
+                
+        # print "H(n) = %s " % matches 
+        return matches
+        
+class P8_h2(Puzzle8Problem):
+    def h(self, n):
+        sum = 0
+        for c in '12345678':
+            sum += mhd(n.state.index(c), self.goal.index(c))
+            
+        # print "State: "
+        # print n.state
+        # print "Sum: %s" % sum
 
-def silent_print():
-    return
+        return sum
+        
+def mhd(n, m):
+    """Given indices in a 9 character strings corresponding to a 3x3 array,
+       return mhd betwen the two positions"""
+    x1,y1 = coordinates[n]
+    x2,y2 = coordinates[m]
+    return abs(x1-x2) + abs(y1-y2)
+    #return abs((n - m) / 3) + abs( ((n / 3) % 3) - ((m / 3) % 3))        
+
+coordinates = {0:(0,0), 1:(1,0), 2:(2,0),
+               3:(0,1), 4:(1,1), 5:(2,1),
+               6:(0,2), 7:(1,2), 8:(2,2)}
     
 print "Going to solve the following puzzle:"
 printPuzzle(initialState)
 
-def depth_limited_search(problem, limit=100):
-    "[Fig. 3.12]"
-    def recursive_dls(node, problem, limit):
-        cutoff_occurred = False
-        if problem.goal_test(node.state):
-            return node
-        elif node.depth == limit:
-            return 'cutoff'
-        else:
-            for successor in node.expand(problem):
-                result = recursive_dls(successor, problem, limit)
-                if result == 'cutoff':
-                    cutoff_occurred = True
-                elif result != None:
-                    return result
-        if cutoff_occurred:
-            return 'cutoff'
-        else:
-            return None
-    # Body of depth_limited_search:
-    return recursive_dls(Node(problem.initial), problem, limit)
-
 algorithms = {
     'DepthFirstGraphSearch': depth_first_graph_search, 
-    'BredthFirstGraphSearch': breadth_first_graph_search
+    'BredthFirstGraphSearch': breadth_first_graph_search,
+    'AStarCountingTilesOutOfPlace' : astar_search,
+    'AStarManhattanDistance' : astar_search
 }
 
+
 for key, func in algorithms.iteritems():
-    print "Using %s algorithm to solve this puzzle ... \n\n" % key
+    print "\n\n\nUsing %s algorithm to solve this puzzle ... \n\n" % key
     
-    solution = func(p)
     
+    if key == 'AStarCountingTilesOutOfPlace':
+        problem = P8_h1(initialState, goalState)
+    elif key == 'AStarManhattanDistance':
+        problem = P8_h2(initialState, goalState)
+    else:
+        problem = Puzzle8Problem(initialState, goalState)
+        
+    start_time = time.time()
+    
+    solution = func(problem)
+    
+    end_time = time.time()
+    total_time = end_time - start_time
+
     if solution == None:
         print "%s algorithm wasn't able to solve this puzzle :(" % key
         continue
@@ -259,6 +294,11 @@ for key, func in algorithms.iteritems():
     path.reverse()
     
     # print "\n\nSolution found successfully! \n\tPath length: %s \n\tSteps to solution: %s\n\tDepth: %s\n\n" % (len(path), path, solution.depth)
-    print "\n\nSolution found successfully! \n\tPath length: %s \n\tDepth: %s\n\n" % (len(path), solution.depth)
+    print "\nSolution found successfully! \n\tPath length: %s \n\tDepth: %s\n\tTime: %s seconds\n" % (len(path), solution.depth, round(total_time, 2)),
+    
+    # if len(path) < 50:
+    #     print "\tPath: %s" % path
+    # else:
+    #     print "Path: (too many nodes ...)"
 
 sys.exit(0)
