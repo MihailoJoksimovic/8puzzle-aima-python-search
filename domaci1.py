@@ -23,10 +23,15 @@ class Puzzle8Problem(Problem):
         return True
         
     "Generates all possible combinations from the current position"
-    def successor(self, state):
-        #print "Finding successors for state: "
-        #printPuzzle(state)
-        #print ""
+    def successor(self, stateTuple):
+        print "State tuple is:"
+        print stateTuple
+        
+        state = stateTuple[1]
+        
+        print "Finding successors for state: "
+        printPuzzle(state)
+        print ""
         
         index = self._get_empty_tile_position(state)
         
@@ -57,7 +62,9 @@ class Puzzle8Problem(Problem):
             new_list[row][switchIndex] = 0
             new_list[row][col] = tileForSwitch
             
-            possibleCombinations.append(('L', new_list))
+            key = expand_state(new_list)
+            
+            possibleCombinations.append(('L',(key, new_list)))
         
         "### Move to the right:"
         "Tile can be moved to right if it isn't in the last column"
@@ -71,7 +78,9 @@ class Puzzle8Problem(Problem):
             new_list[row][switchIndex] = 0
             new_list[row][col] = tileForSwitch
             
-            possibleCombinations.append(('R', new_list))
+            key = expand_state(new_list)
+            
+            possibleCombinations.append(('R', (key, new_list)))
             
         "### Move up:"
         if row != 0:
@@ -84,7 +93,9 @@ class Puzzle8Problem(Problem):
             new_list[switchIndex][col] = 0
             new_list[row][col] = tileForSwitch
             
-            possibleCombinations.append(('U', new_list))
+            key = expand_state(new_list)
+            
+            possibleCombinations.append(('U', (key, new_list)))
             
         "### Move down:"
         if row < totalRows - 1:
@@ -97,8 +108,12 @@ class Puzzle8Problem(Problem):
             new_list[switchIndex][col] = 0
             new_list[row][col] = tileForSwitch
             
-            possibleCombinations.append(('D', new_list))
+            key = expand_state(new_list)
+            
+            possibleCombinations.append(('D', (key, new_list)))
         
+        print "Returning all possible combinations"
+        print possibleCombinations
         
         return possibleCombinations
         
@@ -135,20 +150,18 @@ def expand_state(state):
 
 # In[174]:
 
-initialState = [ [ 1, 0, 2 ], [ 3, 4, 5 ], [ 6, 7, 8 ] ]
+initialState = [ [ 1, 2, 0 ], [ 3, 4, 5 ], [ 6, 7, 8 ] ]
 goalState = [ [ 0, 1, 2 ], [ 3, 4, 5 ], [ 6, 7, 8]]
 
 initialStateKey = expand_state(initialState) 
 
-dictionary = Dict()
-dictionary[initialStateKey] = initialState
+initialStateTuple = (initialStateKey, initialState)
 
 
-p = Puzzle8Problem(initialState, goalState)
+p = Puzzle8Problem(initialStateTuple, goalState)
 
-p.successor(initialState)
-
-solution = breadth_first_tree_search(p)
+#solution = breadth_first_tree_search(p)
+solution = depth_first_tree_search(p)
 
 #solution = tree_search(p)
 
