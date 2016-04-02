@@ -6,7 +6,7 @@
 from search import *            # The Python module for search problems
 from copy import deepcopy
 import sys
-
+import time
 
 # In[170]:
 
@@ -21,6 +21,9 @@ class Puzzle8Problem(Problem):
     def _validate_state(self, state):
 		# TODO: Implement and prevent unsolveable puzzles!
         return True
+    def goal_test(self, stateTuple):
+        state = stateTuple[1]
+        return state == self.goal
         
     "Generates all possible combinations from the current position"
     def successor(self, stateTuple):
@@ -160,13 +163,16 @@ initialStateTuple = (initialStateKey, initialState)
 
 p = Puzzle8Problem(initialStateTuple, goalState)
 
-#solution = breadth_first_tree_search(p)
-solution = depth_first_tree_search(p)
+solution = breadth_first_tree_search(p)
+#solution = depth_first_tree_search(p)
 
 #solution = tree_search(p)
 
 # In[178]:
 
+print ""
+print ""
+print "Found the solution! Printing the path:"
 path = solution.path()
 path.reverse()
 
